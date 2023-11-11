@@ -3,7 +3,7 @@ import './style.css';
 
 const DatesOptions = ({ dates }) => {
 	return dates.map((date) => (
-		<option key={date.dateBasic} value={date.Basic}>
+		<option key={date.dateBasic} value={date.dateBasic}>
 			{date.dateCs}
 		</option>
 	));
@@ -47,7 +47,7 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 			);
 			if (!resp.ok) {
 				alert(
-					'Něco je špatně, nepodařilo se načíst seznam měst. Dejte si kafe a pak to zkuste znova.'
+					'Něco je špatně, nepodařilo se načíst datumy. Dejte si kafe a pak to zkuste znova.'
 				);
 				return;
 			}
@@ -57,9 +57,17 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 		fetchDates();
 	}, []);
 
-	const handleSubmit = (event) => {
+	const handleSubmit = async (event) => {
 		event.preventDefault();
+
+		const response = await fetch(
+			`https://apps.kodim.cz/daweb/leviexpress/api/journey?fromCity=${fromCity}&toCity=${toCity}&date=${date}`
+		);
+		const journeyData = await response.json();
+		onJourneyChange(journeyData.results);
 	};
+
+	const isButtonDisabled = !fromCity || !toCity || !date;
 
 	return (
 		<div className="journey-picker container">
@@ -97,7 +105,7 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 						</select>
 					</label>
 					<div className="journey-picker__controls">
-						<button className="btn" type="submit">
+						<button className="btn" type="submit" disabled={isButtonDisabled}>
 							Vyhledat spoj
 						</button>
 					</div>

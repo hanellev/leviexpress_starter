@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import './style.css';
 
-/**
- * Komponenta `CityOptions` očekává props `cities`, což má být pole objektů, každý objekt v poli
- * má obsahovat property `code` a `name`.
- *
- * Např.:
- * [
- *   {name: "Plzeň", code: "PL"},
- *   {name: "České Budějovice", code: "CB"}
- * ]
- */
+const DatesOptions = ({ dates }) => {
+	return dates.map((date) => (
+		<option key={date.dateBasic} value={date.Basic}>
+			{date.dateCs}
+		</option>
+	));
+};
+
 const CityOptions = ({ cities }) => {
 	return cities.map((city) => (
 		<option key={city.code} value={city.code}>
@@ -24,6 +22,7 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 	const [toCity, setToCity] = useState('');
 	const [date, setDate] = useState('');
 	const [cities, setCities] = useState([]);
+	const [dates, setDates] = useState([]);
 
 	useEffect(() => {
 		const fetchCities = async () => {
@@ -41,6 +40,21 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 		};
 
 		fetchCities();
+
+		const fetchDates = async () => {
+			const resp = await fetch(
+				'https://apps.kodim.cz/daweb/leviexpress/api/dates'
+			);
+			if (!resp.ok) {
+				alert(
+					'Něco je špatně, nepodařilo se načíst seznam měst. Dejte si kafe a pak to zkuste znova.'
+				);
+				return;
+			}
+			const data = await resp.json();
+			setDates(data.results);
+		};
+		fetchDates();
 	}, []);
 
 	const handleSubmit = (event) => {
@@ -79,11 +93,7 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 							onChange={(event) => setDate(event.target.value)}
 						>
 							<option value="">Vyberte</option>
-							<option value="datum01">Datum 01</option>
-							<option value="datum02">Datum 02</option>
-							<option value="datum03">Datum 03</option>
-							<option value="datum04">Datum 04</option>
-							<option value="datum05">Datum 05</option>
+							<DatesOptions dates={dates} />
 						</select>
 					</label>
 					<div className="journey-picker__controls">

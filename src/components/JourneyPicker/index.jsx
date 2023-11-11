@@ -1,23 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import './style.css';
 
-// Ve svém projektu již máte vytvořen základy komponenty s názvem JourneyPicker. Ta je součástí komponenty HomePage a zatím vrací pouze statické JSX. V tomto cvičení propojíme výběr měst a data se stavem komponenty.
-
-// 1. V komponentě JourneyPicker si připravte funkci handleSubmit(event), která se bude volat při odeslání formuláře. Ošetřete, aby prohlížeč sám neodesílal formulář a zatím si ve funkci jen vypište do konzole text 'Odesílám formulář s cestou'.
-// 2. Napojte funkci handleSubmit na událost submit ve formuláři. Ověřte v prohlížeči, že po kliknutí na Vyhledat spoj se v konzoli objeví výše uvedený text.
-// 3. Pomocí useState si v komponentě připravte tři stavy: fromCity, toCity a date. Výchozí hodnotou bude ve všech třech případech prázdný řetězec '';
-// 4. Napojte každý ze stavů na správý <select> tak, aby select zobrazoval vybraný stav a změna v selectu se promítla do stavu. Vytvoříte tedy dvoucestný databinding, kdy se např. stav fromCity bude promítat do value příslušného selectu, a při události onChange na selectu se nová hodnota zapíše do stavu fromCity. Obdobně i pro další dva selecty a stavy toCity a date.
-// 5. Upravte funkci handleSubmit tak, aby do konzole vypsala všechny tři stavy. Vyzkoušejte, že výběrem stavu v selectu se změní stav – po kliknutí na tlačítko se do konzole vypíše změněný stav. Tím, že si dočasně změnít výchozí hodnotu v useState('') na některou z hodnot (atribut value) v <option> můžete ověřit, že funguje správně nastavení výchozího stavu selectu.
-// 6. Commitněte změny.
+/**
+ * Komponenta `CityOptions` očekává props `cities`, což má být pole objektů, každý objekt v poli
+ * má obsahovat property `code` a `name`.
+ *
+ * Např.:
+ * [
+ *   {name: "Plzeň", code: "PL"},
+ *   {name: "České Budějovice", code: "CB"}
+ * ]
+ */
+const CityOptions = ({ cities }) => {
+	return cities.map((city) => (
+		<option key={city.code} value={city.code}>
+			{city.name}
+		</option>
+	));
+};
 
 export const JourneyPicker = ({ onJourneyChange }) => {
 	const [fromCity, setFromCity] = useState('');
 	const [toCity, setToCity] = useState('');
 	const [date, setDate] = useState('');
+	const [cities, setCities] = useState([]);
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		console.log('Odesílám formulář s cestou', { fromCity, toCity, date });
+	useEffect(() => {
+		const fetchCities = async () => {
+			const resp = await fetch(
+				'https://apps.kodim.cz/daweb/leviexpress/api/cities'
+			);
+			if (!resp.ok) {
+				alert(
+					'Něco je špatně, nepodařilo se načíst seznam měst. Dejte si kafe a pak to zkuste znova.'
+				);
+				return;
+			}
+			const data = await resp.json();
+			setCities(data.results);
+		};
+
+		fetchCities();
+	}, []);
+
+	const handleSubmit = (event) => {
+		event.preventDefault();
 	};
 
 	return (
@@ -29,30 +56,28 @@ export const JourneyPicker = ({ onJourneyChange }) => {
 						<div className="journey-picker__label">Odkud:</div>
 						<select
 							value={fromCity}
-							onChange={(e) => setFromCity(e.target.value)}
+							onChange={(event) => setFromCity(event.target.value)}
 						>
 							<option value="">Vyberte</option>
-							<option value="mesto01">Město 01</option>
-							<option value="mesto02">Město 02</option>
-							<option value="mesto03">Město 03</option>
-							<option value="mesto04">Město 04</option>
-							<option value="mesto05">Město 05</option>
+							<CityOptions cities={cities} />
 						</select>
 					</label>
 					<label>
 						<div className="journey-picker__label">Kam:</div>
-						<select value={toCity} onChange={(e) => setToCity(e.target.value)}>
+						<select
+							value={toCity}
+							onChange={(event) => setToCity(event.target.value)}
+						>
 							<option value="">Vyberte</option>
-							<option value="mesto01">Město 01</option>
-							<option value="mesto02">Město 02</option>
-							<option value="mesto03">Město 03</option>
-							<option value="mesto04">Město 04</option>
-							<option value="mesto05">Město 05</option>
+							<CityOptions cities={cities} />
 						</select>
 					</label>
 					<label>
 						<div className="journey-picker__label">Datum:</div>
-						<select value={date} onChange={(e) => setDate(e.target.value)}>
+						<select
+							value={date}
+							onChange={(event) => setDate(event.target.value)}
+						>
 							<option value="">Vyberte</option>
 							<option value="datum01">Datum 01</option>
 							<option value="datum02">Datum 02</option>
